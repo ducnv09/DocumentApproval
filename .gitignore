@@ -1,0 +1,61 @@
+# ==========================================
+# BACKEND (.NET / C# / Visual Studio)
+# ==========================================
+# Thư mục build
+[Bb]in/
+[Oo]bj/
+
+# Cấu hình IDE cá nhân
+.vs/
+*.user
+*.suo
+*.sln.docstates
+*.userprefs
+
+# File log và cache của VS
+[Ll]og/
+[Ll]ogs/
+*.log
+
+# ==========================================
+# FRONTEND (Node.js / VueJS / Vite)
+# ==========================================
+node_modules/
+dist/
+dist-ssr/
+
+# Logs npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Biến môi trường (không nên đưa lên Git)
+.env.local
+.env.*.local
+
+# ==========================================
+# MOBILE (Capacitor / Android / iOS)
+# ==========================================
+# Thư mục build của Android
+FE/android/.gradle/
+FE/android/app/build/
+FE/android/build/
+FE/android/local.properties
+FE/android/.idea/
+
+# iOS (nếu sau này bạn có build iOS)
+FE/ios/DerivedData/
+FE/ios/build/
+FE/ios/App/Pods/
+FE/ios/App/App.xcworkspace/xcuserdata/
+FE/ios/App/App.xcodeproj/xcuserdata/
+
+# ==========================================
+# HỆ ĐIỀU HÀNH & IDE CHUNG
+# ==========================================
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
