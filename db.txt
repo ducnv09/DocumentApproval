@@ -1,0 +1,120 @@
+// ==========================================
+// HỆ THỐNG PHÊ DUYỆT TỜ TRÌNH (BẢN RÚT GỌN TÊN & TÁCH BẢNG)
+// ==========================================
+
+// -- 1. QUẢN LÝ NGƯỜI DÙNG, NHÓM & THIẾT BỊ --
+
+Table Users {
+  Id varchar [primary key]
+  Username varchar
+  FullName nvarchar
+  Email varchar
+  IsAdmin boolean
+  IsActive boolean 
+}
+
+Table Groups { 
+  Id varchar [primary key]
+  Name nvarchar [note: 'VD: Phòng IT, Ban TGĐ']
+  Code varchar
+  CreatedAt datetime
+}
+
+Table Positions { // BẢNG MỚI: Quản lý danh mục chức danh
+  Id varchar [primary key]
+  Name nvarchar [note: 'VD: Trưởng phòng, Kế toán viên']
+}
+
+Table UserGroups { 
+  UserId varchar [primary key]
+  GroupId varchar [primary key]
+  PositionId varchar [note: 'Chức danh của user trong nhóm này']
+}
+
+Table DeviceTokens { 
+  Id varchar [primary key]
+  UserId varchar
+  FcmToken varchar 
+  DeviceName varchar 
+  Platform varchar [note: 'VD: iOS, Android, Web']
+  LastActive datetime
+}
+
+// -- 2. QUẢN LÝ TỜ TRÌNH & LUỒNG DUYỆT --
+
+Table Workflows { 
+  Id varchar [primary key]
+  Name nvarchar 
+  Type varchar [note: 'SEQUENTIAL hoặc PARALLEL']
+  IsActive boolean
+}
+
+Table Steps { // TÁCH LẠI: Bảng cấu hình luồng mẫu
+  Id varchar [primary key]
+  WorkflowId varchar
+  StepOrder int
+  GroupId varchar [note: 'Nhóm chịu trách nhiệm duyệt']
+  PositionId varchar [note: 'NULL = Ai trong nhóm cũng duyệt được. Có ID = Chỉ đúng chức danh mới duyệt được']
+  ApprovalCount int [note: 'Số lượng record PENDING cần sinh ra']
+}
+
+Table DocTypes { 
+  Id varchar [primary key]
+  WorkflowId varchar [note: 'Quan hệ N-1 với Workflows']
+  Name nvarchar
+  Description nvarchar
+}
+
+Table Documents {
+  Id varchar [primary key]
+  CreatorId varchar
+  GroupId varchar 
+  DocTypeId varchar
+  Title nvarchar
+  Content text
+  AttachmentUrl varchar 
+  Status varchar [note: 'Draft, Pending, Approved, Rejected']
+  CreatedAt datetime
+  UpdatedAt datetime
+}
+
+Table Approvals { // TÁCH LẠI: Bảng lưu lịch sử & trạng thái ký
+  Id varchar [primary key]
+  DocumentId varchar
+  StepId varchar [note: 'Liên kết về cấu hình của bước duyệt này']
+  GroupId varchar [note: 'Lưu lại GroupId để truy vấn cho nhanh']
+  ApproverId varchar [note: 'NULL nếu đang chờ']
+  ActionType varchar [note: 'PENDING, APPROVED, REJECTED']
+  Reason nvarchar 
+  SignatureData blob [note: 'Lưu Base64 hoặc varbinary(MAX) của chữ ký']
+  ActionAt datetime
+}
+
+// ==========================================
+// THIẾT LẬP MỐI QUAN HỆ
+// ==========================================
+
+// Quan hệ User, Group, Position
+Ref: UserGroups.UserId > Users.Id
+Ref: UserGroups.GroupId > Groups.Id
+Ref: UserGroups.PositionId > Positions.Id
+
+// Quan hệ thiết bị FCM
+Ref: DeviceTokens.UserId > Users.Id
+
+// Quan hệ Cấu hình Luồng duyệt (Template)
+Ref: DocTypes.WorkflowId > Workflows.Id
+Ref: Steps.WorkflowId > Workflows.Id
+Ref: Steps.GroupId > Groups.Id
+Ref: Steps.PositionId > Positions.Id
+
+// Quan hệ Tờ trình thực tế (Instance)
+Ref: Documents.CreatorId > Users.Id
+Ref: Documents.GroupId > Groups.Id
+Ref: Documents.DocTypeId > DocTypes.Id
+
+// Lịch sử ký duyệt (Runtime)
+Ref: Approvals.DocumentId > Documents.Id
+Ref: Approvals.StepId > Steps.Id
+Ref: Approvals.GroupId > Groups.Id
+Ref: Approvals.ApproverId > Users.Id
