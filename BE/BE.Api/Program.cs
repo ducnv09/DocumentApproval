@@ -10,10 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 // ============================================================
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// .NET 8 equivalent for API documentation
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// 1. Đăng ký Database Context (Sử dụng MySQL)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<BE.Infrastructure.Persistence.Contexts.ApplicationDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // 2. Mở CORS để App Mobile (VueJS) có thể gọi được API
 builder.Services.AddCors(options =>
@@ -47,11 +51,6 @@ var app = builder.Build();
 // KHU VỰC 2: CẤU HÌNH PIPELINE (Luồng chạy của Request)
 // LƯU Ý: THỨ TỰ Ở ĐÂY RẤT QUAN TRỌNG, KHÔNG ĐẢO LỘN
 // ============================================================
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
 app.UseSwagger();
 app.UseSwaggerUI();
