@@ -1,7 +1,5 @@
 using BE.Domain.Enums;
 using BE.Domain.Exceptions;
-using BE.Domain.Exceptions.DocumentState;
-using BE.Domain.Exceptions.BusinessRule;
 using System;
 using System.Collections.Generic;
 

@@ -11,6 +11,7 @@ namespace BE.Domain.Entities
         public string Email { get; private set; }
         public bool IsAdmin { get; private set; }
         public bool IsActive { get; private set; }
+        public string PasswordHash { get; private set; }
 
         protected User() { }
 
@@ -27,6 +28,11 @@ namespace BE.Domain.Entities
             Email = email;
             IsAdmin = isAdmin;
             IsActive = true;
+        }
+
+        public void SetPassword(string passwordHash)
+        {
+            PasswordHash = passwordHash;
         }
 
         public void Deactivate()

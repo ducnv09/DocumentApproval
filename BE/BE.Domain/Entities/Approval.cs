@@ -1,7 +1,5 @@
 using BE.Domain.Enums;
 using BE.Domain.Exceptions;
-using BE.Domain.Exceptions.BusinessRule;
-using BE.Domain.Exceptions.Concurrency;
 using System;
 
 namespace BE.Domain.Entities

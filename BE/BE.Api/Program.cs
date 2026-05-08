@@ -2,6 +2,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using BE.Api.Middlewares;
+using BE.Api.Extensions;
+using BE.Application.DTOs;
+using BE.Application.DTOs.Auth;
+using BE.Application.DTOs.Admin;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,14 +15,30 @@ var builder = WebApplication.CreateBuilder(args);
 // ============================================================
 
 builder.Services.AddControllers();
-// .NET 8 equivalent for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Bind cấu hình từ appsettings.json vào JwtOptions
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
+// Tối ưu hóa JSON Serialization bằng Source Generator (Chaining modular contexts)
+// Thay vì dùng cơ chế Reflection chậm chạp để parse JSON lúc runtime, bạn đang đăng ký sẵn các JsonContext. 
+// Việc này giúp API serialize/deserialize các DTO nhanh hơn rất nhiều và tiêu tốn ít RAM hơn.
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, SharedJsonContext.Default);
+    options.SerializerOptions.TypeInfoResolverChain.Insert(1, AuthJsonContext.Default);
+    options.SerializerOptions.TypeInfoResolverChain.Insert(2, AdminJsonContext.Default);
+});
 
 // 1. Đăng ký Database Context (Sử dụng MySQL)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<BE.Infrastructure.Persistence.Contexts.ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// 1.1 Đăng ký Services & Repositories thông qua Extensions
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices();
 
 // 2. Mở CORS để App Mobile (VueJS) có thể gọi được API
 builder.Services.AddCors(options =>
@@ -28,7 +49,17 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
-// 3. Đăng ký cấu hình bảo mật JWT
+// 2.1 Cấu hình Policy phân quyền
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireClaim("IsAdmin", "true"));
+});
+
+// 3. Đăng ký Global Exception Handler (.NET 8)
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+// 4. Đăng ký cấu hình bảo mật JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "ChuoiMacDinhNeuQuenCauHinh123456789!!!";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -49,23 +80,27 @@ var app = builder.Build();
 
 // ============================================================
 // KHU VỰC 2: CẤU HÌNH PIPELINE (Luồng chạy của Request)
-// LƯU Ý: THỨ TỰ Ở ĐÂY RẤT QUAN TRỌNG, KHÔNG ĐẢO LỘN
 // ============================================================
+
+// Global Exception Handling (.NET 8 - Phải đặt ở đầu Pipeline)
+app.UseExceptionHandler();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// app.UseHttpsRedirection();
-
-// 4. Kích hoạt CORS (Phải đứng trước Authentication)
 app.UseCors("AllowMobileApp");
 
-// 5. Kích hoạt Authentication (Xác thực xem user là ai - Bắt buộc phải có)
 app.UseAuthentication();
-
-// 6. Kích hoạt Authorization (Kiểm tra xem user có quyền làm gì không)
+app.UseActiveUserCheck();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Seed Database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<BE.Infrastructure.Persistence.Contexts.ApplicationDbContext>();
+    await BE.Infrastructure.Persistence.DbInitializer.SeedAsync(context);
+}
 
 app.Run();

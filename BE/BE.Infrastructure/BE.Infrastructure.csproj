@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BE.Domain\BE.Domain.csproj" />
+    <ProjectReference Include="..\BE.Application\BE.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +21,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.3.1" />
   </ItemGroup>
 
 </Project>
