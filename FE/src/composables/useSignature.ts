@@ -1,0 +1,1 @@
+// Logic xử lý nét vẽ, chuyển đổi Canvas sang Base64/Blob

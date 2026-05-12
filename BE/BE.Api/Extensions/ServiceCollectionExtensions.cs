@@ -14,6 +14,7 @@ namespace BE.Api.Extensions
             // Application Services
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IWorkflowExecutionService, WorkflowExecutionService>();
 
             return services;
         }
@@ -25,6 +26,12 @@ namespace BE.Api.Extensions
             services.AddScoped<IGroupRepository, GroupRepository>();
             services.AddScoped<IPositionRepository, PositionRepository>();
             services.AddScoped<IUserGroupRepository, UserGroupRepository>();
+            services.AddScoped<IWorkflowRepository, WorkflowRepository>();
+            services.AddScoped<IDocumentRepository, DocumentRepository>();
+            services.AddScoped<IApprovalRepository, ApprovalRepository>();
+            
+            // Unit of Work
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Authentication
             services.AddScoped<IJwtProvider, JwtProvider>();

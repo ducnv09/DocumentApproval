@@ -1,46 +1,102 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import Home from '../views/Home.vue';
-import Login from '../views/Login.vue';
+import { createRouter, createWebHistory, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
+import { Capacitor } from '@capacitor/core'
+import { setupRouterGuards } from './guards'
 
-const routes = [
-  { 
-    path: '/login', 
-    name: 'Login', 
-    component: Login 
+// ============================================================
+// ROUTE DEFINITIONS
+// ============================================================
+
+const routes: RouteRecordRaw[] = [
+  // ---- Auth Routes (Guest Only) ----
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../pages/auth/Login.vue'),
+    meta: { guestOnly: true },
   },
-  { 
-    path: '/register', 
-    name: 'Register', 
-    component: () => import('../views/Register.vue')
+
+  // ---- Main App Routes (Requires Auth) ----
+  {
+    path: '/',
+    component: () => import('../layouts/MainLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'Dashboard',
+        component: () => import('../pages/dashboard/Dashboard.vue'),
+      },
+
+      // --- Tờ trình ---
+      {
+        path: 'documents',
+        name: 'DocumentList',
+        component: () => import('../pages/documents/DocumentList.vue'),
+      },
+      {
+        path: 'documents/create',
+        name: 'DocumentCreate',
+        component: () => import('../pages/documents/DocumentCreate.vue'),
+      },
+      {
+        path: 'documents/:id',
+        name: 'DocumentDetail',
+        component: () => import('../pages/documents/DocumentDetail.vue'),
+        props: true,
+      },
+
+      // --- Phê duyệt ---
+      {
+        path: 'approvals',
+        name: 'ApprovalHistory',
+        component: () => import('../pages/approvals/ApprovalHistory.vue'),
+      },
+
+      // --- Admin (chỉ dành cho Admin) ---
+      {
+        path: 'admin/users',
+        name: 'AdminUsers',
+        component: () => import('../pages/admin/Users.vue'),
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: 'admin/groups',
+        name: 'AdminGroups',
+        component: () => import('../pages/admin/Groups.vue'),
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: 'admin/workflows',
+        name: 'AdminWorkflows',
+        component: () => import('../pages/admin/Workflows.vue'),
+        meta: { requiresAdmin: true },
+      },
+    ],
   },
-  { 
-    path: '/', 
-    name: 'Home', 
-    component: Home,
-    meta: { requiresAuth: true } // Đánh dấu route này cần đăng nhập
-  }
-];
+
+  // ---- Catch-all: Redirect về Dashboard ----
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: { name: 'Dashboard' },
+  },
+]
+
+// ============================================================
+// KHỞI TẠO ROUTER
+// ============================================================
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: Capacitor.isNativePlatform()
+    ? createWebHashHistory()
+    : createWebHistory(),
   routes,
-});
+  scrollBehavior(_to, _from, savedPosition) {
+    // Giữ vị trí scroll khi quay lại trang trước
+    return savedPosition ?? { top: 0 }
+  },
+})
 
-// Điều hướng (Navigation Guard)
-router.beforeEach((to, _from, next) => {
-  // Lấy token từ bộ nhớ thiết bị
-  const token = localStorage.getItem('app_token');
+// Đăng ký Navigation Guards
+setupRouterGuards(router)
 
-  if (to.meta.requiresAuth && !token) {
-    // Nếu trang cần đăng nhập mà chưa có token -> Đẩy về màn Login
-    next('/login');
-  } else if ((to.path === '/login' || to.path === '/register') && token) {
-    // Nếu có token rồi mà đòi vào Login/Register -> Đẩy thẳng vào Home
-    next('/');
-  } else {
-    // Cho phép đi tiếp
-    next();
-  }
-});
-
-export default router;
+export default router

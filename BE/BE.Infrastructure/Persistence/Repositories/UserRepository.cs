@@ -10,13 +10,21 @@ namespace BE.Infrastructure.Persistence.Repositories
         private readonly ApplicationDbContext _context;
         public UserRepository(ApplicationDbContext context) => _context = context;
 
-        public async Task<User?> GetByIdAsync(Guid id) => await _context.Users.FindAsync(id);
-        public async Task<User?> GetByUsernameAsync(string username) => await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-        public async Task<List<User>> GetAllAsync() => await _context.Users.ToListAsync();
-        public async Task AddAsync(User user) => await _context.Users.AddAsync(user);
-        public async Task UpdateAsync(User user) => _context.Users.Update(user);
-        public async Task DeleteAsync(User user) => _context.Users.Remove(user);
-        public async Task<bool> ExistsAsync(string username) => await _context.Users.AnyAsync(u => u.Username == username);
-        public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+        public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) => await _context.Users.FindAsync(new object[] { id }, cancellationToken);
+        public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken = default) => await _context.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+        public async Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default) => await _context.Users.ToListAsync(cancellationToken);
+        public async Task AddAsync(User user, CancellationToken cancellationToken = default) => await _context.Users.AddAsync(user, cancellationToken);
+        public Task UpdateAsync(User user, CancellationToken cancellationToken = default) 
+        {
+            _context.Users.Update(user);
+            return Task.CompletedTask;
+        }
+        public Task DeleteAsync(User user, CancellationToken cancellationToken = default) 
+        {
+            _context.Users.Remove(user);
+            return Task.CompletedTask;
+        }
+        public async Task<bool> ExistsAsync(string username, CancellationToken cancellationToken = default) => await _context.Users.AnyAsync(u => u.Username == username, cancellationToken);
+        public async Task SaveChangesAsync(CancellationToken cancellationToken = default) => await _context.SaveChangesAsync(cancellationToken);
     }
 }

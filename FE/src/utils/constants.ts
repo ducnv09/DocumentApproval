@@ -1,0 +1,1 @@
+// Lưu trữ các Enum trạng thái (PENDING, APPROVED, REJECTED)

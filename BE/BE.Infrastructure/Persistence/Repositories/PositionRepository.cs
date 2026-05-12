@@ -10,9 +10,9 @@ namespace BE.Infrastructure.Persistence.Repositories
         private readonly ApplicationDbContext _context;
         public PositionRepository(ApplicationDbContext context) => _context = context;
 
-        public async Task<Position?> GetByIdAsync(Guid id) => await _context.Positions.FindAsync(id);
-        public async Task<List<Position>> GetAllAsync() => await _context.Positions.ToListAsync();
-        public async Task AddAsync(Position position) => await _context.Positions.AddAsync(position);
-        public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+        public async Task<Position?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) => await _context.Positions.FindAsync(new object[] { id }, cancellationToken);
+        public async Task<List<Position>> GetAllAsync(CancellationToken cancellationToken = default) => await _context.Positions.ToListAsync(cancellationToken);
+        public async Task AddAsync(Position position, CancellationToken cancellationToken = default) => await _context.Positions.AddAsync(position, cancellationToken);
+        public async Task SaveChangesAsync(CancellationToken cancellationToken = default) => await _context.SaveChangesAsync(cancellationToken);
     }
 }

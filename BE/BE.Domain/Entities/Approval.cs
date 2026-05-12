@@ -10,6 +10,7 @@ namespace BE.Domain.Entities
         public Guid DocumentId { get; private set; }
         public Guid StepId { get; private set; }
         public Guid GroupId { get; private set; }
+        public Guid? PositionId { get; private set; }
         public Guid? ApproverId { get; private set; }
         public ActionType ActionType { get; private set; }
         public string? Reason { get; private set; }
@@ -18,7 +19,7 @@ namespace BE.Domain.Entities
 
         protected Approval() { }
 
-        public static Approval CreatePending(Guid documentId, Guid stepId, Guid groupId)
+        public static Approval CreatePending(Guid documentId, Guid stepId, Guid groupId, Guid? positionId)
         {
             return new Approval
             {
@@ -26,6 +27,7 @@ namespace BE.Domain.Entities
                 DocumentId = documentId,
                 StepId = stepId,
                 GroupId = groupId,
+                PositionId = positionId,
                 ActionType = ActionType.Pending
             };
         }
@@ -46,6 +48,15 @@ namespace BE.Domain.Entities
             Reason = reason;
             SignatureData = signature;
             ActionAt = DateTime.UtcNow;
+        }
+
+        public void Cancel()
+        {
+            if (ActionType == ActionType.Pending)
+            {
+                ActionType = ActionType.Canceled;
+                ActionAt = DateTime.UtcNow;
+            }
         }
     }
 }

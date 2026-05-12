@@ -1,5 +1,4 @@
-using BE.Infrastructure.Persistence.Contexts;
-using Microsoft.EntityFrameworkCore;
+using BE.Domain.Interfaces;
 using System.Security.Claims;
 
 namespace BE.Api.Middlewares
@@ -21,14 +20,14 @@ namespace BE.Api.Middlewares
                 if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out Guid userId))
                 {
                     // Resolve Repository from RequestServices (Scoped)
-                    var userRepository = context.RequestServices.GetRequiredService<BE.Domain.Interfaces.IUserRepository>();
-                    var user = await userRepository.GetByIdAsync(userId);
+                    var userRepository = context.RequestServices.GetRequiredService<IUserRepository>();
+                    var user = await userRepository.GetByIdAsync(userId, context.RequestAborted);
 
                     if (user == null || !user.IsActive)
                     {
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         await context.Response.WriteAsJsonAsync(new { message = "Tài khoản của bạn không khả dụng hoặc đã bị khóa." });
-                        return;
+                        return; 
                     }
                 }
             }
