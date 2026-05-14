@@ -61,8 +61,11 @@ apiClient.interceptors.response.use(
     switch (status) {
       case 401:
         // Token hết hạn hoặc không hợp lệ → Đăng xuất
-        toastService.warn('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.')
-        handleUnauthorized()
+        // Nhưng nếu đang gọi API login thì bỏ qua (Login.vue tự xử lý)
+        if (!error.config?.url?.includes('/auth/login')) {
+          toastService.warn('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.')
+          handleUnauthorized()
+        }
         break
 
       case 403:

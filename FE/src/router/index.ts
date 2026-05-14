@@ -21,6 +21,9 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
     children: [
+      // ========================================
+      // USER MENU
+      // ========================================
       {
         path: '',
         name: 'Dashboard',
@@ -48,11 +51,26 @@ const routes: RouteRecordRaw[] = [
       // --- Phê duyệt ---
       {
         path: 'approvals',
-        name: 'ApprovalHistory',
+        name: 'ApprovalList',
         component: () => import('../pages/approvals/ApprovalHistory.vue'),
       },
 
-      // --- Admin (chỉ dành cho Admin) ---
+      // --- Tài khoản cá nhân ---
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('../pages/profile/Profile.vue'),
+      },
+
+      // ========================================
+      // ADMIN MENU (chỉ dành cho Admin)
+      // ========================================
+      {
+        path: 'admin',
+        name: 'AdminDashboard',
+        component: () => import('../pages/admin/AdminDashboard.vue'),
+        meta: { requiresAdmin: true },
+      },
       {
         path: 'admin/users',
         name: 'AdminUsers',
